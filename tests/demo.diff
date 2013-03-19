@@ -1,0 +1,19 @@
+001+ array(5) {
+001- hi there
+002+   [0]=>
+003+   object(CTypes\Library)#3 (0) {
+004+   }
+005+   [1]=>
+006+   object(CTypes\Resource)#1 (0) {
+007+   }
+008+   [2]=>
+009+   int(14)
+010+   [3]=>
+011+   resource(4) of type (ctypes)
+012+   [4]=>
+013+   resource(5) of type (ctypes)
+014+ }
+015+ destroying
+016+ resource(6) of type (ctypes)
+017+ destroying
+018+ resource(7) of type (ctypes)

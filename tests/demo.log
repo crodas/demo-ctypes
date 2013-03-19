@@ -1,0 +1,23 @@
+
+---- EXPECTED OUTPUT
+hi there
+---- ACTUAL OUTPUT
+array(5) {
+  [0]=>
+  object(CTypes\Library)#3 (0) {
+  }
+  [1]=>
+  object(CTypes\Resource)#1 (0) {
+  }
+  [2]=>
+  int(14)
+  [3]=>
+  resource(4) of type (ctypes)
+  [4]=>
+  resource(5) of type (ctypes)
+}
+destroying
+resource(6) of type (ctypes)
+destroying
+resource(7) of type (ctypes)
+---- FAILED
