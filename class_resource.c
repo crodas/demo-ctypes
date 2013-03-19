@@ -70,18 +70,64 @@ static PHP_METHOD(Resource, getResourceId)
     RETURN_LONG(data->resid);
 }
 
+static PHP_METHOD(Resource, setDestructor)
+{
+    FETCH_DATA(data)
+    zval * var;
+    char * error;
+    zend_bool retval;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &var) == FAILURE) {
+		return;
+	}
+	
+    retval = zend_is_callable_ex(var, NULL, 0, NULL, NULL, NULL, &error TSRMLS_CC);
+	if (error) {
+		/* ignore errors */
+		efree(error);
+	}
+
+    if (!retval) {
+        ctypes_exception("Expecting a valid callback", 1);
+        return;
+    }
+
+    if (ctypes_resource_add_destructor(data->resid, var TSRMLS_CC) != SUCCESS) {
+        ctypes_exception("Internal error while creating destructor", 2);
+        return;
+    }
+	RETURN_BOOL(retval);
+}
+
+static PHP_METHOD(Resource, getResourceDemo)
+{
+    FETCH_DATA(data)
+    void * tmp;
+
+    zend_register_resource(return_value, emalloc(50), data->resid);
+}
+
 /* {{{ methods arginfo */
 ZEND_BEGIN_ARG_INFO_EX(arginfo___construct, 0, 0, 1)
     ZEND_ARG_INFO(0, library_path)
     ZEND_ARG_INFO(1, options)
 ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(arginfo___set, 0, 0, 1)
+    ZEND_ARG_INFO(0, callback)
+ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo__getResourceId, 0, 0, 1)
+ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(arginfo__getResourceDemo, 0, 0, 1)
 ZEND_END_ARG_INFO()
 /* }}} */
 
 static zend_function_entry class_methods[] = {
     PHP_ME(Resource, __construct,  arginfo___construct, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
     PHP_ME(Resource, getResourceId,  arginfo__getResourceId, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
+    PHP_ME(Resource, setDestructor,  arginfo___set, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
+
+    // for testing
+    PHP_ME(Resource, getResourceDemo,  arginfo__getResourceDemo, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
     { NULL, NULL, NULL }
 };
 

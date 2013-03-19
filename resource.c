@@ -38,7 +38,7 @@ int mnumber;
 
 
 typedef struct {
-    zend_fcall_info * callback;
+    zval * callback;
     int resource_id;
 } resource_entry;
 
@@ -46,9 +46,21 @@ typedef struct {
 static void ctypes_resource_destructor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
     resource_entry * re;
+    zend_fcall_info fci;
+    zend_fcall_info_cache fcc;
+
+    if (rsrc->type == temp_resource_id) {
+        return;
+    }
+
 	if (zend_hash_index_find(&resources, rsrc->type, (void **) &re)==SUCCESS) {
         if (re->callback) {
-            zval * tmp, *args;
+            if (zend_fcall_info_init(re->callback, 0, &fci, &fcc, NULL, NULL TSRMLS_CC) == FAILURE) {
+                ctypes_exception("failed setup for destructor callback", 10);
+                return;
+            }
+
+            zval * tmp, *args, *retval;
             MAKE_STD_ZVAL(tmp);
             MAKE_STD_ZVAL(args);
 
@@ -57,17 +69,22 @@ static void ctypes_resource_destructor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
             **  be free by us into a zval * again and do a PHP callback.
             **  They are responsible for freeing this resource.
             */  
+            array_init_size(args, (uint)1);
+
             zend_register_resource(tmp, rsrc->ptr, temp_resource_id);
             add_next_index_zval(args, tmp);
 
-	        zend_fcall_info_args(re->callback, args TSRMLS_CC);
-
-	        if (zend_call_function(re->callback, NULL TSRMLS_CC) == FAILURE) {
+            if (zend_fcall_info_call(&fci, &fcc, &retval, args TSRMLS_CC) != SUCCESS) {
+                ctypes_exception("failed destructor callback", 10);
             }
 
-            efree(args);
-            efree(tmp);
+            zval_ptr_dtor(&args);
+            zval_ptr_dtor(&tmp);
+        } else {
+            ctypes_exception("Trying to destroy resource but couldn't find any callback", 2);
         }
+    } else {
+        ctypes_exception("Unknown resource", 2);
     }
 }
 
@@ -88,9 +105,10 @@ void ctypes_resource_destroy()
 	zend_hash_destroy(&resources);
 }
 
-int ctypes_resource_add_destructor(int id, zend_fcall_info * callback TSRMLS_DC)
+int ctypes_resource_add_destructor(int id, zval * callback TSRMLS_DC)
 {
     resource_entry * re;
+
 	if (zend_hash_index_find(&resources, id, (void **) &re)==SUCCESS) {
         re->callback = callback;
         Z_ADDREF_P(callback);
@@ -106,12 +124,16 @@ int ctypes_resource_create(TSRMLS_DC)
     int resource_id;
     resource_entry re;
 
-    resource_id = zend_register_list_destructors_ex(NULL,  ctypes_resource_destructor, "ctypes", mnumber);
+    resource_id = zend_register_list_destructors_ex(ctypes_resource_destructor, NULL, "ctypes", mnumber);
 
-    re.callback = 0;
+    re.callback = NULL;
     re.resource_id = resource_id;
 
-
+    /*
+    ** Match the Ids of our private resource array
+    ** with php's resources array.
+    */
+	resources.nNextFreeElement = resource_id;
 	if (zend_hash_next_index_insert(&resources, (void *) &re, sizeof(resource_entry), NULL)==FAILURE) {
 		return FAILURE;
 	}
