@@ -54,21 +54,6 @@ typedef struct {
   Internal support code
 ****************************************/
 
-/* {{{ php_ctypes_throw_exception(char * message, int errno TSRMLS_DC)
-    Throws an Exception  */
-static void php_ctypes_throw_exception(char * message, int errorno TSRMLS_DC)
-{
-    zval * tc_ex;
-
-    MAKE_STD_ZVAL(tc_ex);
-    object_init_ex(tc_ex, ctypes_exception_ce);
-
-    zend_update_property_string(ctypes_exception_ce, tc_ex, "message", sizeof("message") - 1,
-            message TSRMLS_CC);
-    zend_throw_exception_object(tc_ex TSRMLS_CC);
-}
-/* }}} */
-
 /* {{{ constructor/destructor */
 static void php_ctypes_destroy(php_ctypes_t *obj TSRMLS_DC)
 {
@@ -100,81 +85,17 @@ zend_object_value php_ctypes_new(zend_class_entry *ce TSRMLS_DC)
     return retval;
 }
 /* }}} */
- 
-/* {{{ methods arginfo */
-ZEND_BEGIN_ARG_INFO_EX(arginfo___construct, 0, 0, 1)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_add, 0)
-    ZEND_ARG_INFO(0, data)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_save, 0)
-    ZEND_ARG_INFO(0, language)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_parse, 0)
-    ZEND_ARG_INFO(0, text)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo__save, 0)
-    ZEND_ARG_INFO(0, language)
-    ZEND_ARG_ARRAY_INFO(0, ngrams, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_getInfo, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo__load, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo__parser, 0)
-    ZEND_ARG_INFO(0, text)
-    ZEND_ARG_INFO(0, min)
-    ZEND_ARG_INFO(0, max)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_setDir, 0)
-    ZEND_ARG_INFO(0, path)
-ZEND_END_ARG_INFO()
-/* }}} */
-
-/* {{{ ctypes_class_methods */
-static zend_function_entry base_ctypes_class_methods[] = {
-    /*
-    PHP_ME(Basectypes, __construct,  arginfo___construct, ZEND_ACC_PUBLIC)
-    PHP_ME(Basectypes, add,     arginfo_add,         ZEND_ACC_PUBLIC)
-    PHP_ME(Basectypes, getInfo, arginfo_getInfo,     ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    PHP_ME(Basectypes, save,    arginfo_save,     ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    PHP_ME(Basectypes, parse,  arginfo_parse, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    PHP_ME(Basectypes, addSample,  arginfo_parse, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    PHP_ME(Basectypes, getKnowledges,  arginfo_getInfo, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    PHP_ME(Basectypes, getCategory,  arginfo_parse, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    ZEND_FENTRY(_save, NULL, arginfo__save, ZEND_ACC_PROTECTED | ZEND_ACC_ABSTRACT)
-    ZEND_FENTRY(_load, NULL, arginfo__load, ZEND_ACC_PROTECTED | ZEND_ACC_ABSTRACT)
-    ZEND_FENTRY(_list, NULL, arginfo__load, ZEND_ACC_PROTECTED | ZEND_ACC_ABSTRACT)
-    ZEND_FENTRY(_parser, NULL, arginfo__parser, ZEND_ACC_PROTECTED | ZEND_ACC_ABSTRACT)
-    /* abstract methods */
-    { NULL, NULL, NULL }
-};
-
-static zend_function_entry ctypes_class_methods[] = {
-    /*
-    PHP_ME(ctypes, _save, arginfo__save, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    PHP_ME(ctypes, _load, arginfo__load, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    PHP_ME(ctypes, _list, arginfo__load, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    PHP_ME(ctypes, _parser, arginfo__parser, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    PHP_ME(ctypes, setDirectory, arginfo_setDir, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
-    */
-    { NULL, NULL, NULL }
-};
-/* }}} * /
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(ctypes)
 {
-    ctypes_resource_init();
     mnumber = module_number;
+
+    ctypes_resource_init(TSRMLS_C);
+    class_register_resource(TSRMLS_C);
+    class_register_library(TSRMLS_C);
+    class_register_exception(TSRMLS_C);
+
     return SUCCESS;
 }
 /* }}} */
@@ -213,7 +134,7 @@ PHP_MINFO_FUNCTION(ctypes)
 }
 /* }}} */
 
-#ifdef COMPILE_DL_ctypes
+#ifdef COMPILE_DL_CTYPES
 ZEND_GET_MODULE(ctypes)
 #endif
 

@@ -33,6 +33,11 @@ void ctypes_resource_destroy();
 int ctypes_resource_create(TSRMLS_DC);
 int ctypes_resource_add_destructor(int, zend_fcall_info * TSRMLS_DC);
 
+void class_register_library(TSRMLS_DC);
+void class_register_resource(TSRMLS_DC);
+void class_register_exception(TSRMLS_DC);
+void ctypes_exception(char * message, int errorno TSRMLS_DC);
+
 extern int mnumber;
 
 #define phpext_ctypes_ptr &ctypes_module_entry

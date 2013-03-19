@@ -6,8 +6,8 @@ PHP_ARG_ENABLE(ctypes, whether to enable ctypes functions,
 if test "$PHP_CTYPES" != "no"; then
 
   PHP_SUBST(CTYPES_SHARED_LIBADD)
-  AC_DEFINE(HAVE_ctypes, 1, [ ])
+  AC_DEFINE(HAVE_CTYPES, 1, [ ])
 
-  PHP_NEW_EXTENSION(ctypes, php_ctypes.c resource.c, $ext_shared)
+  PHP_NEW_EXTENSION(ctypes, php_ctypes.c resource.c class_library.c class_resource.c class_exception.c, $ext_shared)
 fi
 
