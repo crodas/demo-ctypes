@@ -79,7 +79,6 @@ static void ctypes_resource_destructor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
             }
 
             zval_ptr_dtor(&args);
-            zval_ptr_dtor(&tmp);
         } else {
             ctypes_exception("Trying to destroy resource but couldn't find any callback", 2);
         }
@@ -116,7 +115,6 @@ int ctypes_resource_add_destructor(int id, zval * callback TSRMLS_DC)
     resource_entry * re;
 
 	if (zend_hash_index_find(&resources, id, (void **) &re)==SUCCESS) {
-        return;
         if (re->callback) {
             zval_ptr_dtor(&re->callback);
         }
@@ -124,7 +122,7 @@ int ctypes_resource_add_destructor(int id, zval * callback TSRMLS_DC)
         *(re->callback) = *callback;
         zval_copy_ctor(re->callback);
 
-	    zend_hash_index_update(&resources, id, (void *) re, sizeof(resource_entry), NULL);
+	    //zend_hash_index_update(&resources, id, (void *) re, sizeof(resource_entry), NULL);
         return SUCCESS;
     }
     return FAILURE;
