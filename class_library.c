@@ -30,10 +30,14 @@ typedef struct {
 } library_data;
 
 typedef struct {
-    library_data * lib;
-    void * fnc;
+    zend_object zo;
+    zval * lib_instance;
+    library_data * libdata;
+    char * name;
+    void * ptr;
 } function;
 
+/* macros {{{ */
 #if defined(PHP_WIN32)
 # define GET_FUNCTION(handle, name)	GetProcAddress(handle, name)
 #elif HAVE_LIBDL
@@ -55,6 +59,7 @@ typedef struct {
 #define T_DOUBLE    TYPE(7)
 #define T_PTR       1 << 25
 #define T_PTRPTR    1 << 26 
+/* }}} */
 
 // Library constructor / destructor {{{
 static void free_library_object(library_data *obj TSRMLS_DC)
@@ -107,8 +112,31 @@ static PHP_METHOD(Library, __construct)
 // }}}
 
 // Function constructor / destructor {{{
+static void free_function_object(function *obj TSRMLS_DC)
+{
+    zend_object_std_dtor(&obj->zo);
+    zval_ptr_dtor(&obj->lib_instance);
+    if (obj->name) {
+        efree(obj->name);
+    }
+    efree(obj);
+}
 zend_object_value new_function_object(zend_class_entry *ce TSRMLS_DC)
 {
+    zend_object_value retval;
+    function * data;
+    zval *tmp;
+
+    data = emalloc(sizeof(function));
+    memset(data, 0, sizeof(function));
+
+    zend_object_std_init(&data->zo, ce TSRMLS_CC);
+    zend_hash_copy(data->zo.properties, &ce->default_properties, (copy_ctor_func_t) zval_add_ref, (void *) &tmp, sizeof(zval *));
+
+    retval.handle = zend_objects_store_put(data, (zend_objects_store_dtor_t)zend_objects_destroy_object, (zend_objects_free_object_storage_t)free_function_object, NULL TSRMLS_CC);
+    retval.handlers = zend_get_std_object_handlers();
+
+    return retval;
 }
 // }}}
 
@@ -146,21 +174,84 @@ static int is_valid(zval * data)
 
 static PHP_METHOD(Library, getFunction)
 {
+    zval * a, *b, *c;
+    zval * args, *callable , *retval;
+
+    FETCH_DATA(data);
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zzz", &a, &b, &c) == FAILURE) {
+		return;
+	}
+
+    object_init_ex(return_value, class_ce_fnc);
+
+    MAKE_STD_ZVAL(callable);
+    array_init_size(callable, 2);
+    add_next_index_zval(callable, return_value);
+    add_next_index_string(callable, "__construct", 1);
+
+    MAKE_STD_ZVAL(args);
+    array_init_size(args, 4);
+    add_next_index_zval(args, getThis());
+    add_next_index_zval(args, a);
+    add_next_index_zval(args, b);
+    add_next_index_zval(args, c);
+
+    zend_fcall_info fci;
+    zend_fcall_info_cache fcc;
+
+    if (zend_fcall_info_init(callable, 0, &fci, &fcc, NULL, NULL TSRMLS_CC) == FAILURE) {
+        ctypes_exception("failed to __construct FunctionProxy", 12);
+        return;
+    }
+
+    if (zend_fcall_info_call(&fci, &fcc, &retval, args TSRMLS_CC) != SUCCESS) {
+        ctypes_exception("failed to __construct FunctionProxy", 13);
+    }
+
+    Z_ADDREF_P(return_value);
+    zval_ptr_dtor(&callable);
+    zval_ptr_dtor(&args);
+}
+
+static PHP_METHOD(Library, getLibraryPath)
+{
+    FETCH_DATA(data);
+    RETURN_STRING(data->path, strlen(data->path));
+}
+
+PHP_METHOD(Function, __construct)
+{
     char * fnc_name;
     int  * fnc_len;
     zval * return_type;
     zval * function_signature;
-    void * ptr;
+    zval * lib_obj;
 
-    FETCH_DATA(data);
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|za", &fnc_name, &fnc_len, &return_type, &function_signature) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "os|za", &lib_obj, &fnc_name, &fnc_len, &return_type, &function_signature) == FAILURE) {
 		return;
 	}
 
-    ptr = GET_FUNCTION(data->lib, fnc_name);
+    if (Z_OBJCE_P(lib_obj) != class_ce) {
+        ctypes_exception("First argument *must* be a CTypes\\Library instance", 4);
+        return;
+        
+    }
 
-    if (!ptr) {
+    FETCH_DATA_EX_EX(lib_obj, library_data, data);
+    FETCH_DATA_EX(function, data_func);
+
+    data_func->libdata = data;
+    
+    // copy the instance of the library
+    MAKE_STD_ZVAL(data_func->lib_instance);
+    *(data_func->lib_instance) = *lib_obj;
+    zval_copy_ctor(data_func->lib_instance);
+
+    data_func->ptr  = GET_FUNCTION(data_func->libdata->lib, fnc_name);
+    data_func->name = strndup(fnc_name, fnc_len);
+
+    if (!data_func->ptr) {
         ctypes_exception("Cannot find function", 4);
         return;
     }
@@ -179,10 +270,19 @@ static PHP_METHOD(Library, getFunction)
     ENDFOREACH(function_signature)
 }
 
-static PHP_METHOD(Library, getLibraryPath)
+PHP_METHOD(Function, getLibrary)
 {
-    FETCH_DATA(data);
-    RETURN_STRING(data->path, strlen(data->path));
+    FETCH_DATA_EX(function, data);
+    *return_value = *(data->lib_instance);
+    zval_copy_ctor(return_value);
+}
+
+PHP_METHOD(Function, __invoke)
+{
+    FETCH_DATA_EX(function, data);
+    printf("Calling %x (%s) from %s\n", data->ptr, data->name, data->libdata->path);
+    fflush(stdout);
+
 }
 
 /* {{{ methods arginfo */
@@ -197,6 +297,12 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo__getFunction, 0, 0, 1)
     ZEND_ARG_INFO(0, return_type)
     ZEND_ARG_INFO(0, function_signature)
 ZEND_END_ARG_INFO()
+ZEND_BEGIN_ARG_INFO_EX(arginfo_z__construct, 0, 0, 1)
+    ZEND_ARG_INFO(0, library)
+    ZEND_ARG_INFO(0, name)
+    ZEND_ARG_INFO(0, return_type)
+    ZEND_ARG_INFO(0, function_signature)
+ZEND_END_ARG_INFO()
 /* }}} */
 
 static zend_function_entry class_methods[] = {
@@ -206,11 +312,18 @@ static zend_function_entry class_methods[] = {
     { NULL, NULL, NULL }
 };
 
+static zend_function_entry class_methods_fnc[] = {
+    PHP_ME(Function, __construct,  arginfo_z__construct, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
+    PHP_ME(Function, __invoke,  NULL, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
+    PHP_ME(Function, getLibrary,  NULL, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
+    { NULL, NULL, NULL }
+};
+
 void class_register_library(TSRMLS_DC)
 {
     zend_class_entry class, class_fnc;
     INIT_CLASS_ENTRY(class, "CTypes\\Library", class_methods);
-    INIT_CLASS_ENTRY(class_fnc, "CTypes\\FunctionProxy", class_methods);
+    INIT_CLASS_ENTRY(class_fnc, "CTypes\\FunctionProxy", class_methods_fnc);
 
     class_ce = zend_register_internal_class(&class TSRMLS_CC);
     class_ce->create_object = new_library_object ;

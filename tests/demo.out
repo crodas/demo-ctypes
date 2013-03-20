@@ -1,7 +1,6 @@
 array(13) {
   [0]=>
-  object(CTypes\Library)#3 (0) {
-  }
+  bool(true)
   [1]=>
   object(CTypes\Resource)#1 (0) {
   }
@@ -24,11 +23,17 @@ array(13) {
   [10]=>
   string(16) "/lib64/libc.so.6"
   [11]=>
-  NULL
+  object(CTypes\FunctionProxy)#4 (0) {
+  }
   [12]=>
-  NULL
+  bool(true)
 }
 destroying
 resource(6) of type (ctypes)
 destroying
 resource(7) of type (ctypes)
+object(CTypes\Library)#3 (0) {
+}
+object(CTypes\Library)#3 (0) {
+}
+Calling 33261d70 (isalpha) from /lib64/libc.so.6

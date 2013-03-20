@@ -61,10 +61,13 @@ extern int mnumber;
 PHP_MINIT_FUNCTION(ctypes);
 PHP_MINFO_FUNCTION(ctypes);
 
-#define FETCH_DATA_EX(type, name) \
+#define FETCH_DATA_EX_EX(zthis, type, name) \
     type * name; \
+    name = (type *)zend_object_store_get_object(zthis TSRMLS_CC);
+
+#define FETCH_DATA_EX(type, name) \
     zval * this = getThis(); \
-    name = zend_object_store_get_object(this TSRMLS_CC);
+    FETCH_DATA_EX_EX(this, type, name)
 
 #define CALL_METHOD(Class, Method, retval, thisptr)  PHP_FN(Class##_##Method)(0, retval, NULL, thisptr, 0 TSRMLS_CC);
 

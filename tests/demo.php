@@ -23,7 +23,9 @@ var_dump(array(
     Library::tFloat,
     Library::tPtr | Library::tInteger,
     $c->getLibraryPath(),
-    $c->getFunction('isalpha', $weird_type, array(Library::tChar, $weird_type->getResourceId()| Library::tPtr  )),
-    $c->getFunction('isalpha', Library::tBool, array(Library::tChar)),
+    $var = $c->getFunction('isalpha', $weird_type, array(Library::tChar, $weird_type->getResourceId()| Library::tPtr  )),
+    is_callable( $c->getFunction('isalpha', Library::tBool, array(Library::tChar)) ),
 ));
-
+var_dump($var->getLibrary());
+var_dump($var->getLibrary());
+$var();
