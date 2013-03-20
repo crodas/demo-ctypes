@@ -116,13 +116,14 @@ int ctypes_resource_add_destructor(int id, zval * callback TSRMLS_DC)
     resource_entry * re;
 
 	if (zend_hash_index_find(&resources, id, (void **) &re)==SUCCESS) {
-        re->callback = callback;
-        Z_ADDREF_P(callback);
+        MAKE_STD_ZVAL(re->callback);
+        *(re->callback) = *callback;
+        zval_copy_ctor(re->callback);
+
 	    zend_hash_index_update(&resources, id, (void *) re, sizeof(resource_entry), NULL);
-    } else {
-        return FAILURE;
+        return SUCCESS;
     }
-    return SUCCESS;
+    return FAILURE;
 }
 
 int ctypes_resource_create(TSRMLS_DC)

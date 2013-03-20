@@ -35,6 +35,11 @@ typedef struct {
     library_data * libdata;
     char * name;
     void * ptr;
+
+    int argc;
+    ffi_cif cif;
+    ffi_type ** args;
+    ffi_type * return_type;
 } function;
 
 /* macros {{{ */
@@ -119,6 +124,9 @@ static void free_function_object(function *obj TSRMLS_DC)
     if (obj->name) {
         efree(obj->name);
     }
+    if (obj->argc > 0) {
+        efree(obj->args);
+    }
     efree(obj);
 }
 zend_object_value new_function_object(zend_class_entry *ce TSRMLS_DC)
@@ -140,10 +148,18 @@ zend_object_value new_function_object(zend_class_entry *ce TSRMLS_DC)
 }
 // }}}
 
-static int is_valid(zval * data)
+static int parse_type(zval * data, ffi_type ** type)
 {
+    #define SET_TYPE(t) if (type) { *type = &ffi_type_##t; };
+
+    #define IF_IS(x, y) \
+        if ((T_##x & Z_LVAL_P(data)) == T_##x) { \
+            SET_TYPE(y) \
+        } 
+
     switch (Z_TYPE_P(data)) {
     case IS_NULL:
+        SET_TYPE(void)
         break;
     case IS_LONG:
         if ((IS_NATIVE & Z_LVAL_P(data)) == 0) {
@@ -157,13 +173,21 @@ static int is_valid(zval * data)
                 id -= T_PTRPTR;
             }
 
+            SET_TYPE(pointer)
             return ctypes_resource_exists((int)id TSRMLS_CC);
         }
+
+        IF_IS(LONG,     slong);
+        IF_IS(DOUBLE,   double);
+        IF_IS(CHAR,     uchar);
+        IF_IS(PTR,      pointer);
+        IF_IS(PTRPTR,   pointer);
         break;
     case IS_OBJECT:
         if (is_register_object(data) == FAILURE) {
             return FAILURE;
         }
+        SET_TYPE(pointer)
         break;
     default: 
         return FAILURE;
@@ -192,7 +216,7 @@ static PHP_METHOD(Library, getFunction)
 
     MAKE_STD_ZVAL(args);
     array_init_size(args, 4);
-    add_next_index_zval(args, getThis());
+    add_next_index_zval(args, this);
     add_next_index_zval(args, a);
     add_next_index_zval(args, b);
     add_next_index_zval(args, c);
@@ -209,7 +233,14 @@ static PHP_METHOD(Library, getFunction)
         ctypes_exception("failed to __construct FunctionProxy", 13);
     }
 
+    // why? {{{
     Z_ADDREF_P(return_value);
+    Z_ADDREF_P(this);
+    Z_ADDREF_P(a);
+    Z_ADDREF_P(b);
+    Z_ADDREF_P(c);
+    // }}}
+
     zval_ptr_dtor(&callable);
     zval_ptr_dtor(&args);
 }
@@ -249,25 +280,38 @@ PHP_METHOD(Function, __construct)
     zval_copy_ctor(data_func->lib_instance);
 
     data_func->ptr  = GET_FUNCTION(data_func->libdata->lib, fnc_name);
-    data_func->name = strndup(fnc_name, fnc_len);
+    data_func->name = estrndup(fnc_name, fnc_len);
 
     if (!data_func->ptr) {
         ctypes_exception("Cannot find function", 4);
         return;
     }
 
-    if (is_valid(return_type) == FAILURE) {
+    if (parse_type(return_type, &data_func->return_type) == FAILURE) {
         ctypes_exception("Invalid $return_type", 4);
         return;
     }
 
 
+    data_func->argc = zend_hash_num_elements( Z_ARRVAL_P(function_signature) );
+    if (data_func->argc > 0) {
+        data_func->args = (ffi_type **)emalloc(sizeof(ffi_type*) * (data_func->argc+1));
+    } else {
+        data_func->args = NULL;
+    }
+
+    int cnt = 0;
     FOREACH(function_signature)
-        if (is_valid(&value) == FAILURE) {
+        if (parse_type(&value, &(data_func->args[cnt++])) == FAILURE) {
             ctypes_exception("Invalid function signature", 4);
             return;
         }
     ENDFOREACH(function_signature)
+
+    if (ffi_prep_cif(&data_func->cif, FFI_DEFAULT_ABI, data_func->argc, data_func->return_type, data_func->args) != FFI_OK) {
+        ctypes_exception("ffi error while creating the function bridge", 4);
+        return;
+    }
 }
 
 PHP_METHOD(Function, getLibrary)
