@@ -8,12 +8,22 @@ $weird_type->setDestructor(function($w) {
     var_dump($w);
 });
 
-$c = new Library("demo.php");
+class Foobar {}
+
+$c = new Library("/lib64/libc.so.6");
 var_dump(array(
     $c, 
     $weird_type, 
     $weird_type->getResourceId(),
     $weird_type->getResourceDemo(),
     $weird_type->getResourceDemo(),
+    Library::tInteger,
+    Library::tChar,
+    Library::tString,
+    Library::tFloat,
+    Library::tPtr | Library::tInteger,
+    $c->getLibraryPath(),
+    $c->getFunction('isalpha', $weird_type, array(Library::tChar, $weird_type->getResourceId()| Library::tPtr  )),
+    $c->getFunction('isalpha', Library::tBool, array(Library::tChar)),
 ));
 

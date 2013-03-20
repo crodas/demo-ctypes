@@ -24,13 +24,15 @@ typedef struct {
 
 static zend_class_entry * class_ce;
 
-#define FETCH_DATA(name) \
-    resource_data * name; \
-    zval * this = getThis(); \
-    name = zend_object_store_get_object(this TSRMLS_CC);
+#define FETCH_DATA(name)  FETCH_DATA_EX(resource_data, name)
 
+static void free_resource_object(resource_data *obj TSRMLS_DC)
+{
+    zend_object_std_dtor(&obj->zo);
+    efree(obj);
+}
 
-zend_object_value new_resource_class(zend_class_entry *ce TSRMLS_DC)
+zend_object_value new_resource_object(zend_class_entry *ce TSRMLS_DC)
 {
     zend_object_value retval;
     resource_data * data;
@@ -44,13 +46,11 @@ zend_object_value new_resource_class(zend_class_entry *ce TSRMLS_DC)
     zend_object_std_init(&data->zo, ce TSRMLS_CC);
     zend_hash_copy(data->zo.properties, &ce->default_properties, (copy_ctor_func_t) zval_add_ref, (void *) &tmp, sizeof(zval *));
 
-    retval.handle = zend_objects_store_put(data, (zend_objects_store_dtor_t)zend_objects_destroy_object, NULL, NULL TSRMLS_CC);
+    retval.handle = zend_objects_store_put(data, (zend_objects_store_dtor_t)zend_objects_destroy_object, (zend_objects_free_object_storage_t)free_resource_object, NULL TSRMLS_CC);
     retval.handlers = zend_get_std_object_handlers();
 
     return retval;
 }
-
-
 
 static PHP_METHOD(Resource, __construct)
 {
@@ -110,7 +110,7 @@ static PHP_METHOD(Resource, getResourceDemo)
 /* {{{ methods arginfo */
 ZEND_BEGIN_ARG_INFO_EX(arginfo___construct, 0, 0, 1)
     ZEND_ARG_INFO(0, library_path)
-    ZEND_ARG_INFO(1, options)
+    ZEND_ARG_INFO(0, options)
 ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo___set, 0, 0, 1)
     ZEND_ARG_INFO(0, callback)
@@ -131,10 +131,18 @@ static zend_function_entry class_methods[] = {
     { NULL, NULL, NULL }
 };
 
+int is_register_object(zval * x) 
+{
+    if (Z_TYPE_P(x) == IS_OBJECT && Z_OBJCE_P(x) == class_ce) {
+        return SUCCESS;
+    }
+    return FAILURE;
+}
+
 void class_register_resource(TSRMLS_DC)
 {
     zend_class_entry class;
     INIT_CLASS_ENTRY(class, "CTypes\\Resource", class_methods);
     class_ce = zend_register_internal_class(&class TSRMLS_CC);
-    class_ce->create_object = new_resource_class ;
+    class_ce->create_object = new_resource_object ;
 }

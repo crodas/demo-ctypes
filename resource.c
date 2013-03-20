@@ -105,6 +105,12 @@ void ctypes_resource_destroy()
 	zend_hash_destroy(&resources);
 }
 
+int ctypes_resource_exists(int id TSRMLS_DC)
+{
+    resource_entry * re;
+	return zend_hash_index_find(&resources, id, (void **)&re);
+}
+
 int ctypes_resource_add_destructor(int id, zval * callback TSRMLS_DC)
 {
     resource_entry * re;

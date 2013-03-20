@@ -1,4 +1,4 @@
-001+ array(5) {
+001+ array(13) {
 001- hi there
 002+   [0]=>
 003+   object(CTypes\Library)#3 (0) {
@@ -12,8 +12,24 @@
 011+   resource(4) of type (ctypes)
 012+   [4]=>
 013+   resource(5) of type (ctypes)
-014+ }
-015+ destroying
-016+ resource(6) of type (ctypes)
-017+ destroying
-018+ resource(7) of type (ctypes)
+014+   [5]=>
+015+   int(16785408)
+016+   [6]=>
+017+   int(16793600)
+018+   [7]=>
+019+   int(16908288)
+020+   [8]=>
+021+   int(17301504)
+022+   [9]=>
+023+   int(50339840)
+024+   [10]=>
+025+   string(16) "/lib64/libc.so.6"
+026+   [11]=>
+027+   NULL
+028+   [12]=>
+029+   NULL
+030+ }
+031+ destroying
+032+ resource(6) of type (ctypes)
+033+ destroying
+034+ resource(7) of type (ctypes)
