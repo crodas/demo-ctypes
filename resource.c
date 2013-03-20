@@ -29,7 +29,7 @@ static HashTable resources;
 ** Because this resource doesn't have a `callback` function, when it is 
 ** released it won't end up doing a double free.
 */
-static temp_resource_id;
+static int temp_resource_id;
 
 /*
 **  Module number, perhaps there is another way to get this number
@@ -116,6 +116,10 @@ int ctypes_resource_add_destructor(int id, zval * callback TSRMLS_DC)
     resource_entry * re;
 
 	if (zend_hash_index_find(&resources, id, (void **) &re)==SUCCESS) {
+        return;
+        if (re->callback) {
+            zval_ptr_dtor(&re->callback);
+        }
         MAKE_STD_ZVAL(re->callback);
         *(re->callback) = *callback;
         zval_copy_ctor(re->callback);

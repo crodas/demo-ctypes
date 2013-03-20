@@ -129,6 +129,7 @@ static void free_function_object(function *obj TSRMLS_DC)
     }
     efree(obj);
 }
+
 zend_object_value new_function_object(zend_class_entry *ce TSRMLS_DC)
 {
     zend_object_value retval;
