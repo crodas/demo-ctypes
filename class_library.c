@@ -357,13 +357,13 @@ PHP_METHOD(Function, __invoke)
     printf("Calling %x (%s) from %s\n", data->ptr, data->name, data->libdata->path);
     fflush(stdout);
 
-	for (i = 0; i < data->argc; i++) {
-		if (need_free[i]) {
-			efree(values[i]);
-		}
-	}
+    if (data->argc > 0) {
+	    for (i = 0; i < data->argc; i++) {
+		    if (need_free[i]) {
+			    efree(values[i]);
+		    }
+	    }
 
-	if (values) {
 		efree(values);
 		efree(args);
 	}
