@@ -11,6 +11,7 @@ $weird_type->setDestructor(function($w) {
 class Foobar {}
 
 $c = new Library("/lib64/libc.so.6");
+
 var_dump(array(
     $c, 
     $weird_type, 
@@ -26,6 +27,14 @@ var_dump(array(
     $var = $c->getFunction('isalpha', $weird_type, array(Library::tChar, $weird_type->getResourceId()| Library::tPtr  )),
     is_callable( $c->getFunction('isalpha', Library::tBool, array(Library::tChar)) ),
 ));
+$memory = new Resource;
+$malloc = $c->getFunction('malloc', $memory, array(Library::tInteger));
+$memory->setDestructor($c->getFunction('free', NULL, array($memory)));
+
+$bytes = $malloc(250);
+unset($bytes);
+
+
 var_dump($var->getLibrary());
 var_dump($var->getLibrary());
 $var();

@@ -1,2 +1,50 @@
-001+ 
+001+ 2 arguments
 001- hi there
+002+ isalpha
+003+ 1 arguments
+004+ isalpha
+005+ array(13) {
+006+   [0]=>
+007+   object(CTypes\Library)#3 (0) {
+008+   }
+009+   [1]=>
+010+   object(CTypes\Resource)#1 (0) {
+011+   }
+012+   [2]=>
+013+   int(14)
+014+   [3]=>
+015+   resource(4) of type (ctypes)
+016+   [4]=>
+017+   resource(5) of type (ctypes)
+018+   [5]=>
+019+   int(16785408)
+020+   [6]=>
+021+   int(16793600)
+022+   [7]=>
+023+   int(16908288)
+024+   [8]=>
+025+   int(17301504)
+026+   [9]=>
+027+   int(50339840)
+028+   [10]=>
+029+   string(16) "/lib64/libc.so.6"
+030+   [11]=>
+031+   object(CTypes\FunctionProxy)#4 (0) {
+032+   }
+033+   [12]=>
+034+   bool(true)
+035+ }
+036+ destroying
+037+ resource(6) of type (ctypes)
+038+ destroying
+039+ resource(7) of type (ctypes)
+040+ 1 arguments
+041+ malloc
+042+ 1 arguments
+043+ free
+044+ Calling 5fe0200 (malloc) from /lib64/libc.so.6
+045+ object(CTypes\Library)#3 (0) {
+046+ }
+047+ object(CTypes\Library)#3 (0) {
+048+ }
+049+ Calling 5f90430 (isalpha) from /lib64/libc.so.6

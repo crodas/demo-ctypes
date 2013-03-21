@@ -1,0 +1,49 @@
+2 arguments
+isalpha
+1 arguments
+isalpha
+array(13) {
+  [0]=>
+  object(CTypes\Library)#3 (0) {
+  }
+  [1]=>
+  object(CTypes\Resource)#1 (0) {
+  }
+  [2]=>
+  int(14)
+  [3]=>
+  resource(4) of type (ctypes)
+  [4]=>
+  resource(5) of type (ctypes)
+  [5]=>
+  int(16785408)
+  [6]=>
+  int(16793600)
+  [7]=>
+  int(16908288)
+  [8]=>
+  int(17301504)
+  [9]=>
+  int(50339840)
+  [10]=>
+  string(16) "/lib64/libc.so.6"
+  [11]=>
+  object(CTypes\FunctionProxy)#4 (0) {
+  }
+  [12]=>
+  bool(true)
+}
+destroying
+resource(6) of type (ctypes)
+destroying
+resource(7) of type (ctypes)
+1 arguments
+malloc
+1 arguments
+free
+Calling 5fe0200 (malloc) from /lib64/libc.so.6
+object(CTypes\Library)#3 (0) {
+}
+object(CTypes\Library)#3 (0) {
+}
+Calling 5f90430 (isalpha) from /lib64/libc.so.6

@@ -75,6 +75,7 @@ PHP_MINFO_FUNCTION(ctypes);
     zval_dtor(&value); } \
     zend_hash_internal_pointer_reset(Z_ARRVAL_P(array));  } while (0);
 
+#define DEBUG(x)    printf x;fflush(stdout);
 #define FOREACH(array) FOREACH_EX(array, 1 == 1)
 
 #define FOREACH_EX(array, exp) do {\

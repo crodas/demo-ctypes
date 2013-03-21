@@ -151,7 +151,9 @@ zend_object_value new_function_object(zend_class_entry *ce TSRMLS_DC)
 
 static int parse_type(zval * data, ffi_type ** type)
 {
-    #define SET_TYPE(t) if (type) { *type = &ffi_type_##t; };
+    #define SET_TYPE(t) if (type) { \
+            *type = &ffi_type_##t; \
+        };
 
     #define IF_IS(x, y) \
         if ((T_##x & Z_LVAL_P(data)) == T_##x) { \
@@ -178,9 +180,11 @@ static int parse_type(zval * data, ffi_type ** type)
             return ctypes_resource_exists((int)id TSRMLS_CC);
         }
 
+        IF_IS(BOOL,     uchar);
         IF_IS(LONG,     slong);
         IF_IS(DOUBLE,   double);
         IF_IS(CHAR,     uchar);
+        IF_IS(STRING,   pointer);
         IF_IS(PTR,      pointer);
         IF_IS(PTRPTR,   pointer);
         break;
@@ -309,10 +313,12 @@ PHP_METHOD(Function, __construct)
         }
     ENDFOREACH(function_signature)
 
-    if (ffi_prep_cif(&data_func->cif, FFI_DEFAULT_ABI, data_func->argc, data_func->return_type, data_func->args) != FFI_OK) {
+    printf("%d arguments\n", data_func->argc);fflush(stdout);
+    if (ffi_prep_cif(&(data_func->cif), FFI_DEFAULT_ABI, data_func->argc, data_func->return_type, data_func->args) != FFI_OK) {
         ctypes_exception("ffi error while creating the function bridge", 4);
         return;
     }
+    printf("%s\n", fnc_name);fflush(stdout);
 }
 
 PHP_METHOD(Function, getLibrary)
