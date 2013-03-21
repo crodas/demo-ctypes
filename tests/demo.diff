@@ -34,17 +34,19 @@
 033+   [12]=>
 034+   bool(true)
 035+ }
-036+ destroying
-037+ resource(6) of type (ctypes)
-038+ destroying
-039+ resource(7) of type (ctypes)
-040+ 1 arguments
-041+ malloc
+036+ release 14
+037+ destroying
+038+ resource(6) of type (ctypes)
+039+ release 14
+040+ destroying
+041+ resource(7) of type (ctypes)
 042+ 1 arguments
-043+ free
-044+ Calling 5fe0200 (malloc) from /lib64/libc.so.6
-045+ object(CTypes\Library)#3 (0) {
-046+ }
+043+ malloc
+044+ 1 arguments
+045+ free
+046+ Calling 5fe0200 (malloc) from /lib64/libc.so.6
 047+ object(CTypes\Library)#3 (0) {
 048+ }
-049+ Calling 5f90430 (isalpha) from /lib64/libc.so.6
+049+ object(CTypes\Library)#3 (0) {
+050+ }
+051+ Calling 5f90430 (isalpha) from /lib64/libc.so.6

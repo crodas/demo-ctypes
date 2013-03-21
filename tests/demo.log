@@ -37,8 +37,10 @@ array(13) {
   [12]=>
   bool(true)
 }
+release 14
 destroying
 resource(6) of type (ctypes)
+release 14
 destroying
 resource(7) of type (ctypes)
 1 arguments

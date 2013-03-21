@@ -71,20 +71,27 @@ PHP_MINFO_FUNCTION(ctypes);
 
 #define CALL_METHOD(Class, Method, retval, thisptr)  PHP_FN(Class##_##Method)(0, retval, NULL, thisptr, 0 TSRMLS_CC);
 
-#define ENDFOREACH(array) \
+#define EXITLOOP \
+    zval_dtor(&value); \
+    zend_hash_internal_pointer_reset(Z_ARRVAL_P(zval_array)); 
+
+#define ENDFOREACH \
     zval_dtor(&value); } \
-    zend_hash_internal_pointer_reset(Z_ARRVAL_P(array));  } while (0);
+    zend_hash_internal_pointer_reset(Z_ARRVAL_P(zval_array));  \
+    } while (0);
 
 #define DEBUG(x)    printf x;fflush(stdout);
 #define FOREACH(array) FOREACH_EX(array, 1 == 1)
 
 #define FOREACH_EX(array, exp) do {\
+    zval * zval_array; \
     HashPosition pos; \
     zval **current, value; \
     char *key;\
     uint keylen;\
     ulong idx;\
     int type;\
+    zval_array = array; \
     for (zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(array), &pos); \
             zend_hash_get_current_data_ex(Z_ARRVAL_P(array), (void**)&current, &pos) == SUCCESS && exp; \
             zend_hash_move_forward_ex(Z_ARRVAL_P(array), &pos) \
