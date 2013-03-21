@@ -331,9 +331,42 @@ PHP_METHOD(Function, getLibrary)
 PHP_METHOD(Function, __invoke)
 {
     FETCH_DATA_EX(function, data);
+    zval ** args = NULL;
+    void ** values = NULL;
+    int  * need_free = NULL;
+    zval * return_value_buf;
+    int i;
+
+
+    if (ZEND_NUM_ARGS() != data->argc) {
+        ctypes_exception("incorrect number of parameters", 33);
+        return;
+    }
+
+    if (data->argc > 0) {
+		args = (zval **)safe_emalloc(sizeof(zval *), data->argc, 0);
+		zend_get_parameters_array(ht, data->argc, args);
+
+		values = emalloc(sizeof(void*) * data->argc);
+		need_free = emalloc(sizeof(int) * data->argc);
+
+        memset(values, 0, sizeof(void*) * data->argc);
+        memset(need_free, 0, sizeof(int) * data->argc);
+    }
+
     printf("Calling %x (%s) from %s\n", data->ptr, data->name, data->libdata->path);
     fflush(stdout);
 
+	for (i = 0; i < data->argc; i++) {
+		if (need_free[i]) {
+			efree(values[i]);
+		}
+	}
+
+	if (values) {
+		efree(values);
+		efree(args);
+	}
 }
 
 /* {{{ methods arginfo */

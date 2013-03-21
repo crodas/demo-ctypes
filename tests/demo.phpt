@@ -40,6 +40,6 @@ unset($bytes);
 
 var_dump($var->getLibrary());
 var_dump($var->getLibrary());
-$var();
+$var(3, $c);
 --EXPECT--
 hi there
