@@ -44,9 +44,4 @@
 043+ malloc
 044+ 1 arguments
 045+ free
-046+ Calling 5fe0200 (malloc) from /lib64/libc.so.6
-047+ object(CTypes\Library)#3 (0) {
-048+ }
-049+ object(CTypes\Library)#3 (0) {
-050+ }
-051+ Calling 5f90430 (isalpha) from /lib64/libc.so.6
+046+ /usr/bin/php: symbol lookup error: /home/crodas/projects/newest/php-ctypes/modules/ctypes.so: undefined symbol: ctypes_excpetion

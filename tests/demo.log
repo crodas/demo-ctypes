@@ -47,10 +47,5 @@ resource(7) of type (ctypes)
 malloc
 1 arguments
 free
-Calling 5fe0200 (malloc) from /lib64/libc.so.6
-object(CTypes\Library)#3 (0) {
-}
-object(CTypes\Library)#3 (0) {
-}
-Calling 5f90430 (isalpha) from /lib64/libc.so.6
+/usr/bin/php: symbol lookup error: /home/crodas/projects/newest/php-ctypes/modules/ctypes.so: undefined symbol: ctypes_excpetion
 ---- FAILED

@@ -58,17 +58,20 @@ typedef struct {
 
 #define FETCH_DATA(name) FETCH_DATA_EX(library_data, name)
 
-#define T_NATIVE   (1 << 24)
+#define T_NATIVE    (1 << 24)
 #define TYPE(x)     (T_NATIVE | (1 << (x+12)))
 #define T_LONG      TYPE(1)
 #define T_CHAR      TYPE(2)
 #define T_STRING    TYPE(5)
 #define T_BOOL      TYPE(6)
 #define T_DOUBLE    TYPE(7)
-#define T_PTR       1 << 25
-#define T_PTRPTR    1 << 26 
+#define T_PTR       (1 << 25)
+#define T_PTRPTR    (1 << 26) 
 
-#define IS_NATIVE(x)    ((T_NATIVE & x) == T_NATIVE)
+#define IS_TYPE(x, y)       ((T_##x & y) == T_##x)
+#define IS_NATIVE(x)        IS_TYPE(NATIVE, x)
+#define IS_PTR(x)           IS_TYPE(PTR, x)
+#define IS_PTRPTR(x)        IS_TYPE(PTRPTR, x)
 //#define IS_NATIVE(x)    ((T_NATIVE & x) == 1)
 /* }}} */
 
@@ -79,7 +82,7 @@ static int parse_type(zval * data, ffi_type ** type)
         };
 
     #define IF_IS(x, y) \
-        if ((T_##x & Z_LVAL_P(data)) == T_##x) { \
+        if (IS_TYPE(x, Z_LVAL_P(data))) { \
             SET_TYPE(y) \
         } 
 
@@ -121,6 +124,8 @@ static int parse_type(zval * data, ffi_type ** type)
         return FAILURE;
     }
 
+    #undef IF_IS
+    #undef SET_TYPE
     return SUCCESS;
 }
 
@@ -239,21 +244,23 @@ static PHP_METHOD(Library, getLibraryPath)
 
 static int ctypes_zval_to_argument(zval * arg, void ** ptr,  int *should_free, long arg_type, int i, char * error TSRMLS_DC)
 {
-    #define IF_IS(x, arg) if ((T_##x & arg_type) == T_##x) { \
+    #define IF_IS(x, arg) if (IS_TYPE(x, arg)) { \
             arg; \
             return SUCCESS; \
         }
 
-    if (IS_NATIVE(arg_type)) {
+    if (IS_NATIVE(arg_type) && !IS_PTR(arg_type) && !IS_PTRPTR(arg_type)) {
         should_free = 0;
+        /**
         IF_IS(BOOL, *ptr = Z_BVAL_P(arg));
         IF_IS(LONG, *ptr = Z_LVAL_P(arg));
-        IF_IS(DOUBLE, *ptr = Z_DVAL_P(arg));
+        //IF_IS(DOUBLE, *ptr = Z_DVAL_P(arg));
         IF_IS(CHAR, *ptr = Z_STRVAL_P(arg)[0] );
         IF_IS(STRING, 
             should_free = 1;
             *ptr = estrndup(Z_STRVAL_P(arg), Z_STRLEN_P(arg));
         );
+        */
         return FAILURE;
     } else {
         // we expect a resource
