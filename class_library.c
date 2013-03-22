@@ -75,6 +75,7 @@ typedef struct {
 //#define IS_NATIVE(x)    ((T_NATIVE & x) == 1)
 /* }}} */
 
+// parse_type {{{
 static int parse_type(zval * data, ffi_type ** type)
 {
     #define SET_TYPE(t) if (type) { \
@@ -128,6 +129,7 @@ static int parse_type(zval * data, ffi_type ** type)
     #undef SET_TYPE
     return SUCCESS;
 }
+// }}}
 
 // class Library {{{
 
@@ -244,26 +246,32 @@ static PHP_METHOD(Library, getLibraryPath)
 
 static int ctypes_zval_to_argument(zval * arg, void ** ptr,  int *should_free, long arg_type, int i, char * error TSRMLS_DC)
 {
-    #define IF_IS(x, arg) if (IS_TYPE(x, arg)) { \
+    #define IF_IS_EX(x, code) if (IS_TYPE(x, arg)) { \
             arg; \
             return SUCCESS; \
         }
 
+    #define boolean unsigned char
+    #define IF_IS_WRAP_AS(x, type, op) IF_IS_EX(x, 
+            *ptr = emalloc(sizeof(type)); \
+            *should_free = 1; \
+            convert_to_##x(arg);
+            **(type**) = op(arg);
+        )
+        
+
+
     if (IS_NATIVE(arg_type) && !IS_PTR(arg_type) && !IS_PTRPTR(arg_type)) {
         should_free = 0;
-        /**
-        IF_IS(BOOL, *ptr = Z_BVAL_P(arg));
-        IF_IS(LONG, *ptr = Z_LVAL_P(arg));
-        //IF_IS(DOUBLE, *ptr = Z_DVAL_P(arg));
-        IF_IS(CHAR, *ptr = Z_STRVAL_P(arg)[0] );
-        IF_IS(STRING, 
-            should_free = 1;
-            *ptr = estrndup(Z_STRVAL_P(arg), Z_STRLEN_P(arg));
-        );
-        */
+
+        IF_IS_WRAP_AS(BOOL,     boolean,    Z_BVAL_P);
+        IF_IS_WRAP_AS(LONG,     long,       Z_LVAL_P);
+        IF_IS_WRAP_AS(DOUBLE,   double,     Z_DVAL_P);
+        IF_IS_WRAP_AS(STRING,   string      Z_STRVAL);
+
         return FAILURE;
-    } else {
-        // we expect a resource
+    } else 
+        // we expect a pointer :-)
     }
 }
 
@@ -438,6 +446,25 @@ PHP_METHOD(Function, __invoke)
 	}
 }
 
+PHP_METHOD(Function, __toString)
+{
+    FETCH_DATA_EX(function, data);
+    char * text;
+    text = (char *)emalloc(strlen(data->name) + strlen(data->lib->path) + 2);
+
+    int offset = 0;
+    memcpy(text, data->lib->path, strlen(data->lib->path)); 
+    offset += strlen(data->lib->path); 
+    text[offset++] = ':';
+
+    memcpy(text + offset, data->name, strlen(data->name)); 
+    offset += strlen(data->name);
+
+    text[offset] = '\0';
+
+    RETURN_STRING(return_type, text, 0);
+}
+
 /* {{{ methods arginfo */
 ZEND_BEGIN_ARG_INFO_EX(arginfo___construct, 0, 0, 1)
     ZEND_ARG_INFO(0, library_path)
@@ -462,6 +489,7 @@ static zend_function_entry class_methods[] = {
     PHP_ME(Library, __construct,  arginfo___construct, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
     PHP_ME(Library, getLibraryPath,  arginfo__getLibraryPath, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
     PHP_ME(Library, getFunction,  arginfo__getFunction, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
+    PHP_ME(Library, __toString,  arginfo__getFunction, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
     { NULL, NULL, NULL }
 };
 
