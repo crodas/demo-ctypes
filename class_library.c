@@ -235,10 +235,18 @@ static PHP_METHOD(Library, getFunction)
 // }}}
 
 // Library::getLibraryPath {{{
+static PHP_METHOD(Library, __toString)
+{
+    FETCH_DATA(data);
+    RETURN_STRING(data->path, 0);
+}
+// }}}
+
+// Library::getLibraryPath {{{
 static PHP_METHOD(Library, getLibraryPath)
 {
     FETCH_DATA(data);
-    RETURN_STRING(data->path, strlen(data->path));
+    RETURN_STRING(data->path, 0);
 }
 // }}}
 
@@ -462,7 +470,7 @@ PHP_METHOD(Function, __toString)
 
     text[offset] = '\0';
 
-    RETURN_STRING(return_type, text, 0);
+    RETURN_STRING(text, 0);
 }
 
 /* {{{ methods arginfo */
@@ -497,6 +505,7 @@ static zend_function_entry class_methods_fnc[] = {
     PHP_ME(Function, __construct,  arginfo_z__construct, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
     PHP_ME(Function, __invoke,  NULL, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
     PHP_ME(Function, getLibrary,  NULL, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
+    PHP_ME(Function, __toString,  arginfo__getFunction, ZEND_ACC_PUBLIC | ZEND_ACC_FINAL)
     { NULL, NULL, NULL }
 };
 
