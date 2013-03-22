@@ -95,6 +95,8 @@ PHP_MINIT_FUNCTION(ctypes)
     class_register_resource(TSRMLS_C);
     class_register_library(TSRMLS_C);
     class_register_exception(TSRMLS_C);
+    class_register_function(TSRMLS_C);
+    class_register_type(TSRMLS_DC);
 
     return SUCCESS;
 }

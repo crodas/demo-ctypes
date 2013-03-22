@@ -37,11 +37,37 @@ int ctypes_resource_add_destructor(int, zval * TSRMLS_DC);
 void class_register_library(TSRMLS_DC);
 void class_register_resource(TSRMLS_DC);
 void class_register_exception(TSRMLS_DC);
+void class_register_function(TSRMLS_DC);
+void class_register_type(TSRMLS_DC);
 void ctypes_exception(char * message, int errorno TSRMLS_DC);
 int ctypes_resource_exists(int id TSRMLS_DC);
 int is_register_object(zval * x) ;
 
 extern int mnumber;
+extern zend_class_entry * class_ce_function;
+extern zend_class_entry * class_ce_library;
+
+typedef struct {
+    zend_object zo;
+    DL_HANDLE lib;
+    char * path;
+} library_data;
+
+typedef struct {
+    zend_object zo;
+    zval * lib_instance;
+    library_data * libdata;
+    char * name;
+    void * ptr;
+
+    int failed;
+
+    int argc;
+    ffi_cif cif;
+    ffi_type ** args;
+    long     * args_types;
+    ffi_type * return_type;
+} function;
 
 #define phpext_ctypes_ptr &ctypes_module_entry
 
@@ -57,9 +83,6 @@ extern int mnumber;
 
 #define PHP_CTYPES_VERSION "0.1"
 
-
-PHP_MINIT_FUNCTION(ctypes);
-PHP_MINFO_FUNCTION(ctypes);
 
 #define FETCH_DATA_EX_EX(zthis, type, name) \
     type * name; \
@@ -102,6 +125,26 @@ PHP_MINFO_FUNCTION(ctypes);
 
 
 #endif /* PHP_ctypes_H */
+
+#define T_NATIVE    (1 << 24)
+#define TYPE(x)     (T_NATIVE | (1 << (x+12)))
+#define T_LONG      TYPE(1)
+#define T_CHAR      TYPE(2)
+#define T_STRING    TYPE(5)
+#define T_BOOL      TYPE(6)
+#define T_DOUBLE    TYPE(7)
+#define T_PTR       (1 << 25)
+#define T_PTRPTR    (1 << 26) 
+
+#define IS_TYPE(x, y)       ((T_##x & y) == T_##x)
+#define IS_NATIVE(x)        IS_TYPE(NATIVE, x)
+#define IS_PTR(x)           IS_TYPE(PTR, x)
+#define IS_PTRPTR(x)        IS_TYPE(PTRPTR, x)
+//#define IS_NATIVE(x)    ((T_NATIVE & x) == 1)
+
+
+PHP_MINIT_FUNCTION(ctypes);
+PHP_MINFO_FUNCTION(ctypes);
 
 /*
  * Local variables:
