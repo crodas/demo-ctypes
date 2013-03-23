@@ -59,9 +59,7 @@ static void ctypes_resource_destructor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
     }
 
 	if (zend_hash_index_find(&resources, rsrc->type, (void **) &re)==SUCCESS) {
-        printf("here\n");fflush(stdout);
         if (re->callback) {
-            printf("%x\n\n", re->callback);fflush(stdout);
             if (zend_fcall_info_init(re->callback, 0, &fci, &fcc, NULL, NULL TSRMLS_CC) == FAILURE) {
                 ctypes_exception("failed setup for destructor callback", 10);
                 return;
