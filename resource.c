@@ -36,46 +36,6 @@ static int temp_resource_id;
 */
 int mnumber;
 
-ZEND_BEGIN_MODULE_GLOBALS(ctypes)
-    HashTable * resources;
-ZEND_END_MODULE_GLOBALS(ctypes)
-ZEND_DECLARE_MODULE_GLOBALS(ctypes)
-
-#if ZTS
-    #define G(x) (TSRMG(ctypes_globals_id, zend_ctypes_globals*, x))
-#else 
-    #define G(x) (ctypes_globals.x)
-#endif
-
-// Global variables (per request) {{{
-static void ctypes_globals_ctor(zend_ctypes_globals * ptr TSRMLS_DC)
-{
-	zend_hash_init(&ptr->resources, 50, NULL, NULL, 1);
-}
-
-static void ctypes_globals_dtor(zend_ctypes_globals * ptr TSRMLS_DC)
-{
-    zend_hash_destroy(&ptr->resources);
-}
-
-int ctypes_request_destroy(TSRMLS_DC)
-{
-    ctypes_globals_dtor(&ctypes_globals TSRMLS_CC);
-}
-
-int ctypes_request_init(TSRMLS_DC)
-{
-    #if ZTS
-    ts_allocate_id(&ctypes_globals_id,
-            sizeof(zend_ctypes_globals),
-            (ts_allocate_ctor)ctypes_globals_ctor,
-            (ts_allocate_dtor)ctypes_globals_dtor);
-    #else
-    ctypes_globals_ctor(&ctypes_globals TSRMLS_CC);
-    #endif
-}
-// }}}
-
 typedef struct {
     zval * resource_object;
     zval * callback;

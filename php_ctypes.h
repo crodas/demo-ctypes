@@ -46,6 +46,19 @@ extern int mnumber;
 extern zend_class_entry * class_ce_function;
 extern zend_class_entry * class_ce_library;
 
+ZEND_BEGIN_MODULE_GLOBALS(ctypes)
+    HashTable * resources;
+ZEND_END_MODULE_GLOBALS(ctypes)
+
+extern zend_ctypes_globals ctypes_globals;
+
+#if ZTS
+    #define G(x) (TSRMG(ctypes_globals_id, zend_ctypes_globals*, x))
+#else 
+    #define G(x) (ctypes_globals.x)
+#endif
+
+
 typedef struct {
     zend_object zo;
     DL_HANDLE lib;
