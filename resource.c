@@ -159,6 +159,7 @@ int ctypes_resource_exists(int id TSRMLS_DC)
 int ctypes_new_resource(int type, zval * output, void * pointer)
 {
     resource_entry * re;
+    int resid;
 	if (zend_hash_index_find(&list_resources, type, (void **)&re) == SUCCESS) {
         if (!re->callback) {
             ctypes_exception("Resource must have a destructor", 343);
@@ -166,6 +167,11 @@ int ctypes_new_resource(int type, zval * output, void * pointer)
         }
         Z_ADDREF_P(re->callback);
         Z_ADDREF_P(re->resource_object);
+        resid = zend_register_resource(output, pointer, type);
+        zend_hash_index_(&G(resources)
+	    if (zend_hash_next_index_insert(&list_resources, (void *) &re, sizeof(resource_entry), NULL)==FAILURE) {
+            return FAILURE;
+        }
         return zend_register_resource(output, pointer, type);
     }
     return FAILURE;
