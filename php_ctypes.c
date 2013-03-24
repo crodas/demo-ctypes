@@ -80,13 +80,13 @@ PHP_MSHUTDOWN_FUNCTION(ctypes)
 
 PHP_RINIT_FUNCTION(ctypes)
 {
-    //ctypes_resource_request_init(TSRMLS_C);
+    ctypes_resource_request_init(TSRMLS_C);
     return SUCCESS;
 }
 
 PHP_RSHUTDOWN_FUNCTION(ctypes)
 {
-    //ctypes_resource_request_destroy(TSRMLS_C);
+    ctypes_resource_request_destroy(TSRMLS_C);
     return SUCCESS;
 }
 

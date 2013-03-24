@@ -36,40 +36,42 @@ static int temp_resource_id;
 */
 int mnumber;
 
-ZEND_BEGIN_MODULE_GLOBALS(resource)
+ZEND_BEGIN_MODULE_GLOBALS(ctypes)
     HashTable * resources;
-ZEND_END_MODULE_GLOBALS(resource)
-
-ZEND_DECLARE_MODULE_GLOBALS(resource);
+ZEND_END_MODULE_GLOBALS(ctypes)
+ZEND_DECLARE_MODULE_GLOBALS(ctypes)
 
 #if ZTS
-    #define G(x) (TSRMG(resource_globals_id, zend_resource_globals*, x))
+    #define G(x) (TSRMG(ctypes_globals_id, zend_ctypes_globals*, x))
 #else 
-    #define G(x) (resource_globals.x)
+    #define G(x) (ctypes_globals.x)
 #endif
 
 // Global variables (per request) {{{
-static void resource_globals_ctor(zend_resource_globals * ptr TSRMLS_DC)
+static void ctypes_globals_ctor(zend_ctypes_globals * ptr TSRMLS_DC)
 {
 	zend_hash_init(&ptr->resources, 50, NULL, NULL, 1);
 }
+
+static void ctypes_globals_dtor(zend_ctypes_globals * ptr TSRMLS_DC)
+{
     zend_hash_destroy(&ptr->resources);
 }
 
-int ctypes_resource_request_destroy(TSRMLS_DC)
+int ctypes_ctypes_request_destroy(TSRMLS_DC)
 {
-    resource_globals_dtor(&resource_globals TSRMLS_CC);
+    ctypes_globals_dtor(&ctypes_globals TSRMLS_CC);
 }
 
-int ctypes_resource_request_init(TSRMLS_DC)
+int ctypes_ctypes_request_init(TSRMLS_DC)
 {
     #if ZTS
-    ts_allocate_id(&resource_globals_id,
-            sizeof(zend_resource_globals),
-            (ts_allocate_ctor)resource_globals_ctor,
-            (ts_allocate_dtor)resource_globals_dtor);
+    ts_allocate_id(&ctypes_globals_id,
+            sizeof(zend_ctypes_globals),
+            (ts_allocate_ctor)ctypes_globals_ctor,
+            (ts_allocate_dtor)ctypes_globals_dtor);
     #else
-    resource_globals_ctor(&resource_globals TSRMLS_CC);
+    ctypes_globals_ctor(&ctypes_globals TSRMLS_CC);
     #endif
 }
 // }}}
