@@ -58,12 +58,12 @@ static void ctypes_globals_dtor(zend_ctypes_globals * ptr TSRMLS_DC)
     zend_hash_destroy(&ptr->resources);
 }
 
-int ctypes_ctypes_request_destroy(TSRMLS_DC)
+int ctypes_request_destroy(TSRMLS_DC)
 {
     ctypes_globals_dtor(&ctypes_globals TSRMLS_CC);
 }
 
-int ctypes_ctypes_request_init(TSRMLS_DC)
+int ctypes_request_init(TSRMLS_DC)
 {
     #if ZTS
     ts_allocate_id(&ctypes_globals_id,
@@ -168,11 +168,11 @@ int ctypes_new_resource(int type, zval * output, void * pointer)
         Z_ADDREF_P(re->callback);
         Z_ADDREF_P(re->resource_object);
         resid = zend_register_resource(output, pointer, type);
-        zend_hash_index_(&G(resources)
-	    if (zend_hash_next_index_insert(&list_resources, (void *) &re, sizeof(resource_entry), NULL)==FAILURE) {
+        Z_ADDREF_P(output);
+        if (zend_hash_next_index_insert(&G(resources), &output, sizeof(zval *), NULL) == FAILURE) {
             return FAILURE;
         }
-        return zend_register_resource(output, pointer, type);
+        return resid;
     }
     return FAILURE;
 }
