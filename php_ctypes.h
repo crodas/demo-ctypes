@@ -47,7 +47,7 @@ extern zend_class_entry * class_ce_function;
 extern zend_class_entry * class_ce_library;
 
 ZEND_BEGIN_MODULE_GLOBALS(ctypes)
-    HashTable * resources;
+    HashTable resources;
 ZEND_END_MODULE_GLOBALS(ctypes)
 
 extern zend_ctypes_globals ctypes_globals;

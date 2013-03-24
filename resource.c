@@ -128,7 +128,6 @@ int ctypes_new_resource(int type, zval * output, void * pointer)
         Z_ADDREF_P(re->callback);
         Z_ADDREF_P(re->resource_object);
         resid = zend_register_resource(output, pointer, type);
-        Z_ADDREF_P(output);
         if (zend_hash_next_index_insert(&G(resources), &output, sizeof(zval *), NULL) == FAILURE) {
             return FAILURE;
         }

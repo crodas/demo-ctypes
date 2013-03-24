@@ -32,41 +32,23 @@ static zend_class_entry * ctypes_exception_ce = NULL;
 
 ZEND_DECLARE_MODULE_GLOBALS(ctypes)
 
-// Global variables (per request) {{{
+// global variables (per request) {{{
+static void check_pointers(void * tmp)
+{
+    zval * z;
+    z = (zval *)tmp;
+    printf("called here %d %d\n",Z_TYPE_P(z) == IS_RESOURCE,  Z_REFCOUNT_P(z));fflush(stdout);
+}
 static void ctypes_globals_ctor(zend_ctypes_globals * ptr TSRMLS_DC)
 {
-	zend_hash_init(&ptr->resources, 50, NULL, NULL, 1);
+	zend_hash_init(&(ptr->resources), 50, NULL, check_pointers, 1);
 }
 
 static void ctypes_globals_dtor(zend_ctypes_globals * ptr TSRMLS_DC)
 {
-    zend_hash_destroy(&ptr->resources);
+    zend_hash_destroy(&(ptr->resources));
 }
 // }}}
-
-typedef struct {
-    unsigned char * path; /* library path */
-    short int loaded;
-    zend_object zo;
-} php_ctypes_t;
-
-
-/****************************************
-  Forward declarations
-****************************************/
-
-/****************************************
-  ctypes callback support 
-****************************************/
-
-
-/****************************************
-  Method implementations
-****************************************/
-
-/****************************************
-  Internal support code
-****************************************/
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(ctypes)
@@ -96,9 +78,10 @@ PHP_RINIT_FUNCTION(ctypes)
 {
     #if ZTS
     ts_allocate_id(&ctypes_globals_id,
-            sizeof(zend_ctypes_globals),
-            (ts_allocate_ctor)ctypes_globals_ctor,
-            (ts_allocate_dtor)ctypes_globals_dtor);
+        sizeof(zend_ctypes_globals),
+        (ts_allocate_ctor)ctypes_globals_ctor,
+        (ts_allocate_dtor)ctypes_globals_dtor
+    );
     #else
     ctypes_globals_ctor(&ctypes_globals TSRMLS_CC);
     #endif
