@@ -150,9 +150,6 @@ zend_object_value new_function_object(zend_class_entry *ce TSRMLS_DC)
     zend_object_std_init(&data->zo, ce TSRMLS_CC);
     zend_hash_copy(data->zo.properties, &ce->default_properties, (copy_ctor_func_t) zval_add_ref, (void *) &tmp, sizeof(zval *));
 
-    MAKE_STD_ZVAL(data->lib_instance);
-    ZVAL_NULL(data->lib_instance);
-
     retval.handle = zend_objects_store_put(data, (zend_objects_store_dtor_t)zend_objects_destroy_object, (zend_objects_free_object_storage_t)free_function_object, NULL TSRMLS_CC);
     retval.handlers = zend_get_std_object_handlers();
 
@@ -173,16 +170,18 @@ PHP_METHOD(Function, __construct)
 		return;
 	}
 
-    if (Z_OBJCE_P(lib_obj) != class_ce_library) {
-        ctypes_exception("First argument *must* be a CTypes\\Library instance", 4);
-        return;
-        
-    }
-
     FETCH_DATA_EX_EX(lib_obj, library_data, data);
     FETCH_DATA_EX(function, data_func);
+    MAKE_STD_ZVAL(data_func->lib_instance);
+    ZVAL_NULL(data_func->lib_instance);
 
     data_func->libdata = data;
+
+    if (Z_OBJCE_P(lib_obj) != class_ce_library) {
+        data_func->failed = 1;
+        ctypes_exception("First argument *must* be a CTypes\\Library instance", 4);
+        return;
+    }
     
     // copy the instance of the library
     *(data_func->lib_instance) = *lib_obj;
@@ -202,7 +201,6 @@ PHP_METHOD(Function, __construct)
         ctypes_exception("Invalid $return_type", 4);
         return;
     }
-
 
     data_func->argc = zend_hash_num_elements( Z_ARRVAL_P(function_signature) );
     if (data_func->argc > 0) {
@@ -277,8 +275,8 @@ PHP_METHOD(Function, __invoke)
 	    for (i = 0; i < data->argc; i++) {
             need_free[i] = 0;
             if (ctypes_zval_to_argument(args[i], &values[i], &need_free[i], &data->args_types[i], i, error TSRMLS_CC) == FAILURE) {
-                    ctypes_exception("cant parse argument", 4);
-                    goto release_memory;
+                ctypes_exception("cant parse argument", 4);
+                goto release_memory;
             }
         }   
     }

@@ -54,38 +54,6 @@ typedef struct {
   Internal support code
 ****************************************/
 
-/* {{{ constructor/destructor */
-static void php_ctypes_destroy(php_ctypes_t *obj TSRMLS_DC)
-{
-
-}
-
-static void php_ctypes_free_storage(php_ctypes_t *obj TSRMLS_DC)
-{
-    zend_object_std_dtor(&obj->zo TSRMLS_CC);
-
-    php_ctypes_destroy(obj TSRMLS_CC);
-    efree(obj);
-}
-
-zend_object_value php_ctypes_new(zend_class_entry *ce TSRMLS_DC)
-{
-    zend_object_value retval;
-    php_ctypes_t *obj;
-    zval *tmp;
-
-    obj = (php_ctypes_t *) emalloc(sizeof(php_ctypes_t));
-    memset(obj, 0, sizeof(php_ctypes_t));
-    zend_object_std_init(&obj->zo, ce TSRMLS_CC);
-    zend_hash_copy(obj->zo.properties, &ce->default_properties, (copy_ctor_func_t) zval_add_ref, (void *) &tmp, sizeof(zval *));
-
-    retval.handle = zend_objects_store_put(obj, (zend_objects_store_dtor_t)zend_objects_destroy_object, (zend_objects_free_object_storage_t)php_ctypes_free_storage, NULL TSRMLS_CC);
-    retval.handlers = zend_get_std_object_handlers();
-
-    return retval;
-}
-/* }}} */
-
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(ctypes)
 {
@@ -110,6 +78,16 @@ PHP_MSHUTDOWN_FUNCTION(ctypes)
 }
 /* }}} */
 
+PHP_RINIT_FUNCTION(ctypes)
+{
+    ctypes_resource_request_init(TSRMLS_C);
+}
+
+PHP_RSHUTDOWN_FUNCTION(ctypes)
+{
+    ctypes_resource_request_destroy();
+}
+
 /* {{{ ctypes_module_entry
  */
 zend_module_entry ctypes_module_entry = {
@@ -118,8 +96,8 @@ zend_module_entry ctypes_module_entry = {
     NULL,
     PHP_MINIT(ctypes),
     PHP_MSHUTDOWN(ctypes),
-    NULL,
-    NULL,
+    PHP_RINIT(ctypes),
+    PHP_RSHUTDOWN(ctypes),
     PHP_MINFO(ctypes),
     PHP_CTYPES_VERSION,
     STANDARD_MODULE_PROPERTIES

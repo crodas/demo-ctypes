@@ -111,13 +111,19 @@ static PHP_METHOD(Library, getFunction)
 
     if (zend_fcall_info_init(callable, 0, &fci, &fcc, NULL, NULL TSRMLS_CC) == FAILURE) {
         ctypes_exception("failed to __construct FunctionProxy", 12);
-        return;
+        zval_ptr_dtor(&return_value);
+        MAKE_STD_ZVAL(return_value);
+        RETURN_NULL();
+        goto exit;
     }
 
     if (zend_fcall_info_call(&fci, &fcc, &retval, args TSRMLS_CC) != SUCCESS) {
         ctypes_exception("failed to __construct FunctionProxy", 13);
+        MAKE_STD_ZVAL(return_value);
+        RETURN_NULL();
     }
 
+    exit:
     // why? {{{
     Z_ADDREF_P(return_value);
     Z_ADDREF_P(this);

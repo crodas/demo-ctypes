@@ -92,7 +92,7 @@ static PHP_METHOD(Resource, setDestructor)
         return;
     }
 
-    if (ctypes_resource_add_destructor(data->resid, var TSRMLS_CC) != SUCCESS) {
+    if (ctypes_resource_add_destructor(data->resid, this, var TSRMLS_CC) != SUCCESS) {
         ctypes_exception("Internal error while creating destructor", 2);
         return;
     }
@@ -102,9 +102,8 @@ static PHP_METHOD(Resource, setDestructor)
 static PHP_METHOD(Resource, getResourceDemo)
 {
     FETCH_DATA(data)
-    void * tmp;
 
-    zend_register_resource(return_value, emalloc(50), data->resid);
+    return ctypes_new_resource(data->resid, return_value, emalloc(50));
 }
 
 /* {{{ methods arginfo */

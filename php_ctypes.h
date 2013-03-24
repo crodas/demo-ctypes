@@ -32,7 +32,6 @@ extern zend_module_entry ctypes_module_entry;
 int ctypes_resource_init(TSRMLS_DC);
 void ctypes_resource_destroy();
 int ctypes_resource_create(TSRMLS_DC);
-int ctypes_resource_add_destructor(int, zval * TSRMLS_DC);
 
 void class_register_library(TSRMLS_DC);
 void class_register_resource(TSRMLS_DC);

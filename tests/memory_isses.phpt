@@ -13,15 +13,26 @@ $weird_type->setDestructor(function($w) {
     var_dump($w);
 });
 
-$memo = $weird_type->getResourceDemo();
+$c = new Library("/lib64/libc.so.6");
+function foobar() {};
 
-new FunctionProxy($weird_type, 'some name', $weird_type);
+$d[] = $weird_type->getResourceDemo();
+$d[] = $weird_type->getResourceDemo();
+
+foobar(array(
+    $d,
+    new FunctionProxy($c, 'some_non_existen_function', $weird_type, array($weird_type->getResourceId() | Type::tPtr)),
+    $c->getFunction('some_non_existen_function', $weird_type, array($weird_type->getResourceId() | Type::tPtr)),
+));
 
 --EXPECTF--
-Fatal error: Uncaught exception 'CTypes\Exception' with message 'First argument *must* be a CTypes\Library instance' in %s/tests/memory_isses.php:%d
+Fatal error: Uncaught exception 'CTypes\Exception' with message 'Cannot find function' in %s/tests/memory_isses.php:%d
 Stack trace:
-#0 %s/tests/memory_isses.php(%d): CTypes\FunctionProxy->__construct(Object(CTypes\Resource), 'some name', Object(CTypes\Resource))
-#1 {main}
+#0 [internal function]: CTypes\FunctionProxy->__construct(%s)
+#1 %s/tests/memory_isses.php(%d): CTypes\Library->getFunction(%s)
+#2 {main}
   thrown in %s/tests/memory_isses.php on line %d
+destroying
+resource(%d) of type (ctypes)
 destroying
 resource(%d) of type (ctypes)
