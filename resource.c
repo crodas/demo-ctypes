@@ -53,9 +53,6 @@ static void resource_globals_ctor(zend_resource_globals * ptr TSRMLS_DC)
 {
 	zend_hash_init(&ptr->resources, 50, NULL, NULL, 1);
 }
-
-static void resource_globals_dtor(zend_resource_globals * ptr TSRMLS_DC)
-{
     zend_hash_destroy(&ptr->resources);
 }
 

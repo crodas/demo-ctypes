@@ -17,9 +17,6 @@
 /* $ Id: $ */ 
 #include "php_ctypes.h"
 
-zend_class_entry * class_ce_function;
-static zend_class_entry * class_ce;
-
 /** Macros {{{ */
 #define FETCH_DATA(name) FETCH_DATA_EX(function, name)
 
@@ -34,6 +31,9 @@ static zend_class_entry * class_ce;
 #endif
 
 /* }}} */
+
+zend_class_entry * class_ce_function;
+static zend_class_entry * class_ce;
 
 static int ctypes_zval_to_argument(zval * arg, void ** ptr,  int *should_free, long arg_type, int i, char * error TSRMLS_DC)
 {
@@ -343,5 +343,4 @@ void class_register_function(TSRMLS_DC)
     class_ce->create_object = new_function_object;
 
     class_ce_function = class_ce;
-
 }

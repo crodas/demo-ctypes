@@ -61,9 +61,9 @@ PHP_MINIT_FUNCTION(ctypes)
 
     ctypes_resource_init(TSRMLS_C);
     class_register_resource(TSRMLS_C);
+    class_register_function(TSRMLS_C);
     class_register_library(TSRMLS_C);
     class_register_exception(TSRMLS_C);
-    class_register_function(TSRMLS_C);
     class_register_type(TSRMLS_DC);
 
     return SUCCESS;
@@ -80,12 +80,14 @@ PHP_MSHUTDOWN_FUNCTION(ctypes)
 
 PHP_RINIT_FUNCTION(ctypes)
 {
-    ctypes_resource_request_init(TSRMLS_C);
+    //ctypes_resource_request_init(TSRMLS_C);
+    return SUCCESS;
 }
 
 PHP_RSHUTDOWN_FUNCTION(ctypes)
 {
-    ctypes_resource_request_destroy();
+    //ctypes_resource_request_destroy(TSRMLS_C);
+    return SUCCESS;
 }
 
 /* {{{ ctypes_module_entry
@@ -94,10 +96,13 @@ zend_module_entry ctypes_module_entry = {
     STANDARD_MODULE_HEADER,
     "ctypes",
     NULL,
+
     PHP_MINIT(ctypes),
     PHP_MSHUTDOWN(ctypes),
+
     PHP_RINIT(ctypes),
     PHP_RSHUTDOWN(ctypes),
+
     PHP_MINFO(ctypes),
     PHP_CTYPES_VERSION,
     STANDARD_MODULE_PROPERTIES

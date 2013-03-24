@@ -23,10 +23,7 @@
 zend_class_entry * class_ce_library;
 static zend_class_entry * class_ce;
 
-/* macros {{{ */
 #define FETCH_DATA(name) FETCH_DATA_EX(library_data, name)
-
-/* }}} */
 
 // class Library {{{
 
